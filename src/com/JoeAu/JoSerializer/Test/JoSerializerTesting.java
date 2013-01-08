@@ -1,7 +1,7 @@
 
 /**
  * Author: glsensor@gmail.com (Joe Au)
- * https://github.com/JoeAu/
+ * https://github.com/JoeAu/JoSerializer
  */
 
 package com.JoeAu.JoSerializer.Test;
@@ -16,7 +16,6 @@ public class JoSerializerTesting {
 
 	static PModel srcEntity;
 	static StopWatch sw = new StopWatch();
-	static JoSerializer joSer;
 	
 	static ModelA.PBModel.PBModelEntity srcPBEntity;
 	
@@ -24,19 +23,22 @@ public class JoSerializerTesting {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		joSer = new JoSerializer(1000);
 		
 		srcEntity = PModelHelper.GetPModelForTest();
+		//srcEntity = new PModel();
 		System.out.println(String.format("JoSerializer Test1£º"));
 		JoSerializerTesting();
+		System.out.println();
 		System.out.println(String.format("JoSerializer Test2£º"));
 		JoSerializerTesting();
 		
 		System.out.println("\n===================================================\n");
 
 		srcPBEntity = PModelHelper.GetPBModelEntity();
+		//srcPBEntity = new ModelA.PBModel.PBModelEntity();
 		System.out.println(String.format("ProtocolBuffersORM Test1£º"));
 		ProtocolBuffersORMTesting();
+		System.out.println();
 		System.out.println(String.format("ProtocolBuffersORM Test2£º"));
 		ProtocolBuffersORMTesting();
 	}
@@ -47,10 +49,10 @@ public class JoSerializerTesting {
 		byte[] buffer = null;
 		sw.start();
 		for(int i=0;i<10000;++i){
+			JoSerializer joSer = new JoSerializer(1000);
 			joSer.Serialize(srcEntity);
 			joSer.flip();
 			buffer = joSer.getBuffer();
-			joSer.reset();
 		}
 		sw.stop();
 
@@ -58,19 +60,14 @@ public class JoSerializerTesting {
 		System.out.println(String.format("%s", Arrays.toString(buffer)));
 		
 		//Deserialize
-		JoSerializer joSer2 = new JoSerializer(buffer);
-		
 		PModel destEntity = null;
-		Object obj = null;
 		sw.start();
 		for(int i=0;i<10000;++i){
-			obj = joSer2.Deserialize(PModel.class);
-			joSer2.reset();
+			JoSerializer joSer2 = new JoSerializer(buffer);
+			destEntity = (PModel)joSer2.Deserialize(PModel.class);
 		}
 		sw.stop();
 		sw.println("Deserialize£¬10000 cycles");
-		
-		destEntity = (PModel)obj;
 		
 		System.out.printf("destEntity.b = %s\n", Arrays.toString(destEntity.b));
 		System.out.printf("destEntity.bo = %s\n", destEntity.bo);
@@ -80,10 +77,23 @@ public class JoSerializerTesting {
 		System.out.printf("destEntity.d = %s\n", destEntity.d);
 		System.out.printf("destEntity.e = %s\n", destEntity.e);
 		System.out.printf("destEntity.str = %s\n", destEntity.str);
-		System.out.printf("destEntity.model1.str1 = %s\n", destEntity.model1.str1);
-		System.out.printf("destEntity.model2.pid = %s\n", destEntity.model2.pid);
 		
-		System.out.printf("destEntity.Arrayb = [%s, %s]\n", Arrays.toString(destEntity.Arrayb[0]), Arrays.toString(destEntity.Arrayb[1]));
+		if(destEntity.model1!=null)
+			System.out.printf("destEntity.model1.str1 = %s\n", destEntity.model1.str1);
+		else
+			System.out.printf("destEntity.model1 = null\n");
+		
+		if(destEntity.model2!=null)
+			System.out.printf("destEntity.model2.pid = %s\n", destEntity.model2.pid);
+		else
+			System.out.printf("destEntity.model2 = null\n");
+		
+		if(destEntity.Arrayb!=null)
+			for(int i=0;i<destEntity.Arrayb.length;++i)
+				System.out.printf("destEntity.Arrayb[%d] = %s\n", i, Arrays.toString(destEntity.Arrayb[i]));
+		else
+			System.out.printf("destEntity.Arrayb = null\n");
+		
 		System.out.printf("destEntity.Arraybo = %s\n", Arrays.toString(destEntity.Arraybo));
 		System.out.printf("destEntity.Arrayi = %s\n", Arrays.toString(destEntity.Arrayi));
 		System.out.printf("destEntity.Arrayl = %s\n", Arrays.toString(destEntity.Arrayl));
@@ -91,20 +101,21 @@ public class JoSerializerTesting {
 		System.out.printf("destEntity.Arrayd = %s\n", Arrays.toString(destEntity.Arrayd));
 		System.out.printf("destEntity.Arraye = %s\n", Arrays.toString(destEntity.Arraye));
 		System.out.printf("destEntity.Arraystr = %s\n", Arrays.toString(destEntity.Arraystr));
-		System.out.printf("destEntity.Arraymodel1[0].str = %s\n", destEntity.Arraymodel1[0].str1);
-		System.out.printf("destEntity.Arraymodel1[1].str = %s\n", destEntity.Arraymodel1[1].str1);
 		
-		
+		if(destEntity.Arraymodel1!=null){
+			for(int i=0;i<destEntity.Arrayb.length;++i)
+				System.out.printf("destEntity.Arraymodel1[%d].str = %s\n", i, destEntity.Arraymodel1[i].str1);
+		}else
+			System.out.printf("destEntity.Arraymodel1 = null\n");
 	}
 	
 	private static void ProtocolBuffersORMTesting() throws Exception{
 		
 		// SerializeEntity
-		ModelA.PBModel pbProxy = null;
 		byte[] buffer = null;
 		sw.start();
 		for(int i=0;i<10000;++i){
-			pbProxy = ModelA.PBModel.SerializeEntity(srcPBEntity);
+			ModelA.PBModel pbProxy = ModelA.PBModel.SerializeEntity(srcPBEntity);
 			buffer = pbProxy.toByteArray();
 		}
 		sw.stop();
@@ -115,16 +126,13 @@ public class JoSerializerTesting {
 		// DeserializeEntity
 		ModelA.PBModel.PBModelEntity destEntity = null;
 		
-		ModelA.PBModel pbProxy2 = ModelA.PBModel.parseFrom(buffer);
-		
 		sw.start();
 		for(int i=0;i<10000;++i){
+			ModelA.PBModel pbProxy2 = ModelA.PBModel.parseFrom(buffer);
 			destEntity = ModelA.PBModel.DeserializeEntity(pbProxy2);
 		}
 		sw.stop();
 		sw.println("Deserialize£¬10000 cycles");
-		
-		byte[] buffer2 = pbProxy2.toByteArray();
 		
 		System.out.printf("destEntity.b = %s\n", Arrays.toString(destEntity.b));
 		System.out.printf("destEntity.bo = %s\n", destEntity.bo);
@@ -134,10 +142,23 @@ public class JoSerializerTesting {
 		System.out.printf("destEntity.d = %s\n", destEntity.d);
 		System.out.printf("destEntity.e = %s\n", destEntity.e);
 		System.out.printf("destEntity.str = %s\n", destEntity.str);
-		System.out.printf("destEntity.model1.str1 = %s\n", destEntity.model1.str1);
-		System.out.printf("destEntity.model2.pid = %s\n", destEntity.model2.pid);
 		
-		System.out.printf("destEntity.Arrayb = [%s, %s]\n", Arrays.toString(destEntity.Arrayb[0]), Arrays.toString(destEntity.Arrayb[1]));
+		if(destEntity.model1!=null)
+			System.out.printf("destEntity.model1.str1 = %s\n", destEntity.model1.str1);
+		else
+			System.out.printf("destEntity.model1 = null\n");
+		
+		if(destEntity.model2!=null)
+			System.out.printf("destEntity.model2.pid = %s\n", destEntity.model2.pid);
+		else
+			System.out.printf("destEntity.model2 = null\n");
+		
+		if(destEntity.Arrayb!=null)
+			for(int i=0;i<destEntity.Arrayb.length;++i)
+				System.out.printf("destEntity.Arrayb[%d] = %s\n", i, Arrays.toString(destEntity.Arrayb[i]));
+		else
+			System.out.printf("destEntity.Arrayb = null\n");
+		
 		System.out.printf("destEntity.Arraybo = %s\n", Arrays.toString(destEntity.Arraybo));
 		System.out.printf("destEntity.Arrayi = %s\n", Arrays.toString(destEntity.Arrayi));
 		System.out.printf("destEntity.Arrayl = %s\n", Arrays.toString(destEntity.Arrayl));
@@ -145,8 +166,12 @@ public class JoSerializerTesting {
 		System.out.printf("destEntity.Arrayd = %s\n", Arrays.toString(destEntity.Arrayd));
 		System.out.printf("destEntity.Arraye = %s\n", Arrays.toString(destEntity.Arraye));
 		System.out.printf("destEntity.Arraystr = %s\n", Arrays.toString(destEntity.Arraystr));
-		System.out.printf("destEntity.Arraymodel1[0].str = %s\n", destEntity.Arraymodel1[0].str1);
-		System.out.printf("destEntity.Arraymodel1[1].str = %s\n", destEntity.Arraymodel1[1].str1);
+		
+		if(destEntity.Arraymodel1!=null){
+			for(int i=0;i<destEntity.Arrayb.length;++i)
+				System.out.printf("destEntity.Arraymodel1[%d].str = %s\n", i, destEntity.Arraymodel1[i].str1);
+		}else
+			System.out.printf("destEntity.Arraymodel1 = null\n");
 
 	}
 	
