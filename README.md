@@ -3,7 +3,9 @@ JoSerializer
 
 Serialization, Deserialization, reflection Object-relational mapping
 
-1) vs ProtocolBuffersORM
+1) The test need Protocol Buffers project.
+
+2) vs ProtocolBuffersORM
 <pre>
 <code>
 JoSerializer Test1：
