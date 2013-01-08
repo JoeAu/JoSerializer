@@ -3,7 +3,7 @@ JoSerializer
 
 Serialization, Deserialization, reflection Object-relational mapping
 
-1) vs PB
+1) vs ProtocolBuffersORM
 <pre>
 <code>
 JoSerializer Test1：
