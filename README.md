@@ -1,7 +1,11 @@
 JoSerializer
-============
+==================
+
+Author: glsensor@gmail.com (Joe Au)
 
 Serialization, Deserialization, reflection Object-relational mapping
+
+================================================================================
 
 1) The test need Protocol Buffers project.
 
